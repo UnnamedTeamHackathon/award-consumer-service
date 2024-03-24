@@ -8,25 +8,22 @@ import {
   Transport,
 } from '@nestjs/microservices';
 import { TaskCompletedMessage } from 'src/messages/task-completed.message';
+import { TopMessage } from 'src/messages/top.message';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller()
-export class FlawlessConsumer {
+export class TopConsumer {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emitter: EventEmitter2,
   ) {}
 
-  @MessagePattern('award.flawless', Transport.KAFKA)
+  @MessagePattern('award.top', Transport.KAFKA)
   async totalTasks(
-    @Payload() event: TaskCompletedMessage,
-    @Ctx() context: KafkaContext,
+    @Payload() event: TopMessage,
+    @Ctx() context: KafkaContext
   ) {
-    if (
-      event.valid == null ||
-      event.userId == null ||
-      event.timestamp == null
-    ) {
+    if (event.rank == null || event.userId == null) {
       return;
     }
 
@@ -35,7 +32,7 @@ export class FlawlessConsumer {
         id: event.userId,
       },
       include: {
-        flawless_completion: true,
+        top_completion: true,
       },
     });
 
@@ -43,32 +40,32 @@ export class FlawlessConsumer {
       candidate = await this.prisma.user.create({
         data: {
           id: event.userId,
-          flawless_completion: {
+          top_completion: {
             create: {
               count: 0,
             },
           },
         },
         include: {
-          flawless_completion: true,
+          top_completion: true,
         },
       });
     }
 
-    if (candidate.flawless_completion == null) {
+    if (candidate.top_completion == null) {
       candidate = await this.prisma.user.update({
         where: {
           id: event.userId,
         },
         data: {
-          flawless_completion: {
+          top_completion: {
             create: {
               count: 0,
             },
           },
         },
         include: {
-          flawless_completion: true,
+          top_completion: true,
         },
       });
     }
@@ -78,25 +75,25 @@ export class FlawlessConsumer {
         id: event.userId,
       },
       data: {
-        flawless_completion: {
+        top_completion: {
           update: {
             where: {
               user_id: event.userId,
             },
             data: {
-              count: event.valid ? candidate.flawless_completion.count + 1 : 0,
+              count: event.rank,
             },
           },
         },
       },
       include: {
-        flawless_completion: true,
+        top_completion: true,
       },
     });
 
-    this.emitter.emit('flawless', {
+    this.emitter.emit('top', {
       userId: event.userId,
-      count: result.flawless_completion.count,
+      count: result.top_completion.count,
     });
   }
 }

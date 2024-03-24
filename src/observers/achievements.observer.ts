@@ -4,6 +4,7 @@ import { AwardsService } from 'src/awards/awards.service';
 import { FlawlessEvent } from 'src/events/flawless.event';
 import { PointsEvent } from 'src/events/points.event';
 import { TaskCompletedEvent } from 'src/events/task-completed.event';
+import { TopEvent } from 'src/events/top.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller()
@@ -39,6 +40,16 @@ export class AchievementsObserver {
       await this.awards.complete({
         userId: event.userId,
         taskName: 'points_completion',
+      });
+    }
+  }
+
+  @OnEvent('top')
+  async top(event: TopEvent) {
+    if (event.rank != 0 && event.rank <= 10) {
+      await this.awards.complete({
+        userId: event.userId,
+        taskName: 'top_completion',
       });
     }
   }

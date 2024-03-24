@@ -23,7 +23,11 @@ export class TotalTaskConsumer {
     @Payload() event: TaskCompletedMessage,
     @Ctx() context: KafkaContext,
   ) {
-    if (event.valid == null || event.userId == null) {
+    if (
+      event.valid == null ||
+      event.userId == null ||
+      event.timestamp == null
+    ) {
       return;
     }
 

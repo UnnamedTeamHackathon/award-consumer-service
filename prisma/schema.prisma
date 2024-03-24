@@ -55,6 +55,7 @@ model DailyCompletionAchievementState {
     id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
 
     count Int
+    last_completion DateTime?
     completed Boolean @default(false)
 
     user_id String @db.Uuid @unique
@@ -65,6 +66,7 @@ model WeekendCompletionAchievementState {
     id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
 
     count Int
+    last_completion DateTime?
     completed Boolean @default(false)
 
     user_id String @db.Uuid @unique
