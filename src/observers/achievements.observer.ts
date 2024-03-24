@@ -53,4 +53,14 @@ export class AchievementsObserver {
       });
     }
   }
+
+  @OnEvent('weekend')
+  async tomorrow(event: TaskCompletedEvent) {
+    if (event.count >= 7) {
+      await this.awards.complete({
+        userId: event.userId,
+        taskName: 'weekend_completion',
+      });
+    }
+  }
 }
