@@ -1,0 +1,82 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "foreignKeys"
+  extensions   = [uuid_ossp(map: "uuid-ossp")]
+}
+
+model User {
+    id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
+
+    total_tasks TotalTaskAchievementState?
+    flawless_completion FlawlessCompletionAchievementState?
+    points_completion PointsCompletionAchievementState?
+    daily_completion DailyCompletionAchievementState?
+    weekend_completion WeekendCompletionAchievementState?
+    top_completion TopCompletionAchievementState?
+}
+
+model TotalTaskAchievementState {
+    id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
+
+    count Int
+    completed Boolean @default(false)
+
+    user_id String @db.Uuid @unique
+    user User @relation(references: [id], fields: [user_id])
+}
+
+model FlawlessCompletionAchievementState {
+    id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
+
+    count Int
+    completed Boolean @default(false)
+
+    user_id String @db.Uuid @unique
+    user User @relation(references: [id], fields: [user_id])
+}
+
+model PointsCompletionAchievementState {
+    id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
+
+    count Int
+    completed Boolean @default(false)
+
+    user_id String @db.Uuid @unique
+    user User @relation(references: [id], fields: [user_id])
+}
+
+model DailyCompletionAchievementState {
+    id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
+
+    count Int
+    completed Boolean @default(false)
+
+    user_id String @db.Uuid @unique
+    user User @relation(references: [id], fields: [user_id])
+}
+
+model WeekendCompletionAchievementState {
+    id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
+
+    count Int
+    completed Boolean @default(false)
+
+    user_id String @db.Uuid @unique
+    user User @relation(references: [id], fields: [user_id])
+}
+
+model TopCompletionAchievementState {
+    id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
+
+    count Int
+    completed Boolean @default(false)
+
+    user_id String @db.Uuid @unique
+    user User @relation(references: [id], fields: [user_id])
+}
