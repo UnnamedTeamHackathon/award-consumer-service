@@ -17,7 +17,7 @@ export class WeekendConsumer {
     private readonly emitter: EventEmitter2,
   ) {}
 
-  @MessagePattern('award.weekend', Transport.KAFKA)
+  @MessagePattern('award.daily', Transport.KAFKA)
   async totalTasks(
     @Payload() event: TaskCompletedMessage,
     @Ctx() context: KafkaContext,
@@ -35,7 +35,7 @@ export class WeekendConsumer {
         id: event.userId,
       },
       include: {
-        weekend_completion: true,
+        daily_completion: true,
       },
     });
 
@@ -43,7 +43,7 @@ export class WeekendConsumer {
       candidate = await this.prisma.user.create({
         data: {
           id: event.userId,
-          weekend_completion: {
+          daily_completion: {
             create: {
               count: 0,
               last_completion: event.timestamp,
@@ -51,18 +51,18 @@ export class WeekendConsumer {
           },
         },
         include: {
-          weekend_completion: true,
+          daily_completion: true,
         },
       });
     }
 
-    if (candidate.weekend_completion == null) {
+    if (candidate.daily_completion == null) {
       candidate = await this.prisma.user.update({
         where: {
           id: event.userId,
         },
         data: {
-          weekend_completion: {
+          daily_completion: {
             create: {
               count: 0,
               last_completion: event.timestamp,
@@ -70,12 +70,12 @@ export class WeekendConsumer {
           },
         },
         include: {
-          weekend_completion: true,
+          daily_completion: true,
         },
       });
     }
 
-    const tomorrow = candidate.weekend_completion.last_completion;
+    const tomorrow = candidate.daily_completion.last_completion;
     tomorrow.setHours(tomorrow.getHours() + 24);
 
     const result = await this.prisma.user.update({
@@ -83,7 +83,7 @@ export class WeekendConsumer {
         id: event.userId,
       },
       data: {
-        weekend_completion: {
+        daily_completion: {
           update: {
             where: {
               user_id: event.userId,
@@ -92,20 +92,20 @@ export class WeekendConsumer {
               last_completion: event.timestamp,
               count:
                 event.timestamp >= tomorrow
-                  ? candidate.weekend_completion.count + 1
+                  ? candidate.daily_completion.count + 1
                   : 0,
             },
           },
         },
       },
       include: {
-        weekend_completion: true,
+        daily_completion: true,
       },
     });
 
-    this.emitter.emit('weekend', {
+    this.emitter.emit('daily', {
       userId: event.userId,
-      count: result.weekend_completion.count,
+      count: result.daily_completion.count,
     });
   }
 }
