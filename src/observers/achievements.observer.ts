@@ -55,8 +55,18 @@ export class AchievementsObserver {
   }
 
   @OnEvent('daily')
-  async tomorrow(event: TaskCompletedEvent) {
+  async daily(event: TaskCompletedEvent) {
     if (event.count >= 7) {
+      await this.awards.complete({
+        userId: event.userId,
+        taskName: 'daily_completion',
+      });
+    }
+  }
+
+  @OnEvent('weekend')
+  async weekend(event: TaskCompletedEvent) {
+    if (event.count == 2) {
       await this.awards.complete({
         userId: event.userId,
         taskName: 'weekend_completion',

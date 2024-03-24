@@ -9,6 +9,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { FlawlessConsumer } from './consumers/flawless.consumer';
 import { TotalPointsConsumer } from './consumers/total-points.consumer';
+import { DailyConsumer } from './consumers/daily.consumer';
+import { WeekendConsumer } from './consumers/weekend.consumer';
 
 @Module({
   providers: [],
@@ -27,6 +29,8 @@ import { TotalPointsConsumer } from './consumers/total-points.consumer';
     TotalTaskConsumer,
     FlawlessConsumer,
     TotalPointsConsumer,
+    WeekendConsumer,
+    DailyConsumer,
   ],
 })
 export class AppModule {}

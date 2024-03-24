@@ -11,13 +11,13 @@ import { TaskCompletedMessage } from 'src/messages/task-completed.message';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller()
-export class DailyConsumer {
+export class WeekendConsumer {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emitter: EventEmitter2,
   ) {}
 
-  @MessagePattern('award.daily', Transport.KAFKA)
+  @MessagePattern('award.weekend', Transport.KAFKA)
   async totalTasks(
     @Payload() event: TaskCompletedMessage,
     @Ctx() context: KafkaContext,
@@ -35,7 +35,7 @@ export class DailyConsumer {
         id: event.userId,
       },
       include: {
-        daily_completion: true,
+        weekend_completion: true,
       },
     });
 
@@ -43,7 +43,7 @@ export class DailyConsumer {
       candidate = await this.prisma.user.create({
         data: {
           id: event.userId,
-          daily_completion: {
+          weekend_completion: {
             create: {
               count: 0,
               last_completion: event.timestamp,
@@ -51,18 +51,18 @@ export class DailyConsumer {
           },
         },
         include: {
-          daily_completion: true,
+          weekend_completion: true,
         },
       });
     }
 
-    if (candidate.daily_completion == null) {
+    if (candidate.weekend_completion == null) {
       candidate = await this.prisma.user.update({
         where: {
           id: event.userId,
         },
         data: {
-          daily_completion: {
+          weekend_completion: {
             create: {
               count: 0,
               last_completion: event.timestamp,
@@ -70,20 +70,39 @@ export class DailyConsumer {
           },
         },
         include: {
-          daily_completion: true,
+          weekend_completion: true,
         },
       });
     }
 
-    const tomorrow = candidate.daily_completion.last_completion;
+    const tomorrow = new Date(candidate.weekend_completion.last_completion);
     tomorrow.setHours(tomorrow.getHours() + 24);
+
+    const today = new Date(event.timestamp);
+    const todayDay = today.getDay();
+
+    let countIncrement = 0;
+
+    if (
+      todayDay === 6 &&
+      candidate.weekend_completion.last_completion.getDay() !== 6
+    ) {
+      countIncrement = 1;
+    }
+
+    if (
+      todayDay === 0 &&
+      candidate.weekend_completion.last_completion.getDay() !== 0
+    ) {
+      countIncrement = 1;
+    }
 
     const result = await this.prisma.user.update({
       where: {
         id: event.userId,
       },
       data: {
-        daily_completion: {
+        weekend_completion: {
           update: {
             where: {
               user_id: event.userId,
@@ -91,21 +110,21 @@ export class DailyConsumer {
             data: {
               last_completion: event.timestamp,
               count:
-                event.timestamp >= tomorrow
-                  ? candidate.daily_completion.count + 1
+                countIncrement > 0
+                  ? candidate.weekend_completion.count + countIncrement
                   : 0,
             },
           },
         },
       },
       include: {
-        daily_completion: true,
+        weekend_completion: true,
       },
     });
 
-    this.emitter.emit('daily', {
+    this.emitter.emit('weekend', {
       userId: event.userId,
-      count: result.daily_completion.count,
+      count: result.weekend_completion.count,
     });
   }
 }
