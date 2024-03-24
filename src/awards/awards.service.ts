@@ -43,6 +43,10 @@ export class AwardsService {
       awards: [],
     };
 
+    if (candidate == null) {
+      return dto;
+    }
+
     if (candidate.total_tasks != null) {
       dto.awards.push({
         name: 'Решала',
