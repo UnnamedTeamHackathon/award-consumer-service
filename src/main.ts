@@ -4,6 +4,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import * as fs from 'node:fs';
+import { ValidationPipe } from '@nestjs/common';
 
 function generateApiSpecs(doc: OpenAPIObject) {
   const filePath = join(__dirname, 'swagger');
@@ -49,6 +50,8 @@ async function bootstrap() {
   SwaggerModule.setup('swagger', app, document);
 
   generateApiSpecs(document);
+
+  app.useGlobalPipes(new ValidationPipe());
 
   await app.startAllMicroservices();
   await app.listen(3003);
