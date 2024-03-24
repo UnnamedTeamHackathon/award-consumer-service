@@ -16,6 +16,14 @@ function generateApiSpecs(doc: OpenAPIObject) {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  app.enableCors({
+    origin: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders:
+      'X-Requested-With, Origin, X-HTTP-Method-Override, Content-Type, Accept, Observe, Authorization',
+  });
 
   const microservice = app.connectMicroservice<MicroserviceOptions>(
     {
